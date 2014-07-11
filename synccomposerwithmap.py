@@ -19,8 +19,14 @@
  *                                                                         *
  ***************************************************************************/
  
- #icon Arrow by P.J. Onori from The Noun Project
+ 
 """
+# To do:
+# get rid of not needed code from plugin builder
+# Test for active composers
+# Test for map in composers
+# Research moveContent
+
 # Import the PyQt and QGIS libraries
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -74,6 +80,9 @@ class syncComposerWithMap:
 
     # run method that performs all the real work
     def run(self):
+        #The link below helped me get started
+        #http://gis.stackexchange.com/questions/2515/altering-composer-label-items-in-qgis-with-python
+        
         #get canvas
         canvas = self.iface.mapCanvas()
         
