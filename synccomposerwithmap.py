@@ -122,41 +122,43 @@ class syncComposerWithMap:
         #get the composition object
         composition = composerView.composition()
         
-        #iterate over each map in composer
-        #Should change this so it will only work on one map
-        for item in composition.composerMapItems():
-            
-            try:
-                #get composer map width
-                compMapWidth = item.currentMapExtent().width()
+        #old version to get list of maps didn't work in win 32 bit
+        #for item in composition.composerMapItems():
+        
+        #get first map object in composer
+        map = composition.getComposerMapById(0)
                 
-                #get composer map height
-                compMapHeight = item.currentMapExtent().height()
+        try:
+            #get composer map width
+            compMapWidth = map.currentMapExtent().width()
                 
-                #calculate new Y min
-                newCompExtentYmin = curMapCenterY - ((curMapWidth / 2) * (compMapHeight / compMapWidth))
+            #get composer map height
+            compMapHeight = map.currentMapExtent().height()
                 
-                #calculate new y max
-                newCompExtentYmax = curMapCenterY + ((curMapWidth / 2) * (compMapHeight / compMapWidth))
+            #calculate new Y min
+            newCompExtentYmin = curMapCenterY - ((curMapWidth / 2) * (compMapHeight / compMapWidth))
                 
-                #new composer extents
-                newCompExtent = QgsRectangle(curMapXmin, newCompExtentYmin, curMapXmax, newCompExtentYmax)
+            #calculate new y max
+            newCompExtentYmax = curMapCenterY + ((curMapWidth / 2) * (compMapHeight / compMapWidth))
                 
-                #set composed new extents
-                item.setNewExtent(newCompExtent)
+            #new composer extents
+            newCompExtent = QgsRectangle(curMapXmin, newCompExtentYmin, curMapXmax, newCompExtentYmax)
                 
-                #set composer scale to equal map scale
-                item.setNewScale(curMapScale)
+            #set composed new extents
+            map.setNewExtent(newCompExtent)
                 
-                #put a nice message on canvas
-                iface.messageBar().pushMessage("Sync Composer with Map","Map center and scale have been synced with ComposerMessage", QgsMessageBar.INFO, 2)
+            #set composer scale to equal map scale
+            map.setNewScale(curMapScale)
                 
-                #not sure why moveContent does not work as expected will investigate
-                #moveX = compMapCenterX-curMapCenterX
-                #moveY = compMapCenterY-curMapCenterY
-                #item.moveContent(moveX, moveY)
-                #item.moveContent(0, 1)
+            #put a nice message on canvas
+            iface.messageBar().pushMessage("Sync Composer with Map","Map center and scale have been synced with ComposerMessage", QgsMessageBar.INFO, 2)
                 
-            except:
-                iface.messageBar().pushMessage("Sync Composer with Map","Something went wrong", QgsMessageBar.WARNING, 3)
-                print "No Composers!!!"
+            #not sure why moveContent does not work as expected will investigate
+            #moveX = compMapCenterX-curMapCenterX
+            #moveY = compMapCenterY-curMapCenterY
+            #item.moveContent(moveX, moveY)
+            #item.moveContent(0, 1)
+                
+        except:
+                iface.messageBar().pushMessage("Sync Composer with Map","I didn't find any maps in Composer", QgsMessageBar.WARNING, 3)
+                #print "No Composer Maps!!!"
