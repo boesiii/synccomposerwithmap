@@ -36,7 +36,7 @@ from qgis.gui import QgsMessageBar
 # Initialize Qt resources from file resources.py
 import resources_rc
 # Import the code for the dialog
-# from synccomposerwithmapdialog import syncComposerWithMapDialog
+from synccomposerwithmapdialog import syncComposerWithMapDialog
 import os.path
 
 
@@ -59,7 +59,7 @@ class syncComposerWithMap:
                 QCoreApplication.installTranslator(self.translator)
 
         # Create the dialog (after translation) and keep reference
-        # self.dlg = syncComposerWithMapDialog()
+        self.dlg = syncComposerWithMapDialog()
 
     def initGui(self):
         # Create action that will start plugin configuration
@@ -83,8 +83,6 @@ class syncComposerWithMap:
         #The link below helped me get started
         #http://gis.stackexchange.com/questions/2515/altering-composer-label-items-in-qgis-with-python
         
-        #TO DO: ADD SIGNAL AND SLOT
-        
         #get canvas
         canvas = self.iface.mapCanvas()
         
@@ -99,11 +97,9 @@ class syncComposerWithMap:
         
         #get map canvas center x coordinate
         curMapCenterX = canvas.extent().center().x()
-        #print "Canvas X = " + str(curMapCenterX)
         
         #get map canvas center y coordinate
         curMapCenterY = canvas.extent().center().y()
-        #print "Canvas Y = " + str(curMapCenterY)
         
         #get map canvas width
         curMapWidth = canvas.extent().width()
@@ -117,7 +113,6 @@ class syncComposerWithMap:
         #get map canvas xmax
         curMapXmax = canvas.extent().xMaximum()
         
-        #TO DO: ADD CHECK FOR COMPOSERS
         #get active composers in a list
         composerList = self.iface.activeComposers()
         
@@ -130,7 +125,6 @@ class syncComposerWithMap:
         #old version to get list of maps didn't work in win 32 bit
         #for item in composition.composerMapItems():
         
-        #TO DO: CHECK FOR MORE THAN ONE MAP
         #get first map object in composer
         map = composition.getComposerMapById(0)
                 
@@ -140,47 +134,31 @@ class syncComposerWithMap:
                 
             #get composer map height
             compMapHeight = map.currentMapExtent().height()
-            
-            compMapCenterX = map.extent().center().x()
-            #print "Composer X = " + str(compMapCenterX)
-            
-            compMapCenterY = map.extent().center().y()
-            #print "Composer Y= " + str(compMapCenterY)
-            
-            #old version to calc composer extents
+                
             #calculate new Y min
-            #newCompExtentYmin = curMapCenterY - ((curMapWidth / 2) * (compMapHeight / compMapWidth))
+            newCompExtentYmin = curMapCenterY - ((curMapWidth / 2) * (compMapHeight / compMapWidth))
+                
             #calculate new y max
-            #newCompExtentYmax = curMapCenterY + ((curMapWidth / 2) * (compMapHeight / compMapWidth))
+            newCompExtentYmax = curMapCenterY + ((curMapWidth / 2) * (compMapHeight / compMapWidth))
+                
             #new composer extents
-            #newCompExtent = QgsRectangle(curMapXmin, newCompExtentYmin, curMapXmax, newCompExtentYmax)
+            newCompExtent = QgsRectangle(curMapXmin, newCompExtentYmin, curMapXmax, newCompExtentYmax)
+                
             #set composed new extents
-            #map.setNewExtent(newCompExtent)
+            map.setNewExtent(newCompExtent)
+                
             #set composer scale to equal map scale
-            #map.setNewScale(curMapScale)
-            #end of old version stuff
-            
-            #calculate x move distance
-            moveX = compMapCenterX-curMapCenterX
-            #print "Move X = " + str(moveX)
-            
-            #calculate y move distance
-            moveY = compMapCenterY-curMapCenterY
-            #print "Move Y = " + str(moveY)
-            
-            #Get units conversion
-            unitCon = map.mapUnitsToMM()
-            
-            #Move composer map to equal canvas map
-            map.moveContent(-moveX * unitCon, moveY * unitCon)
-            
-            #set new composer scale
             map.setNewScale(curMapScale)
-            
+                
             #put a nice message on canvas
             iface.messageBar().pushMessage("Sync Composer with Map","Map center and scale have been synced with ComposerMessage", QgsMessageBar.INFO, 2)
-
+                
+            #not sure why moveContent does not work as expected will investigate
+            #moveX = compMapCenterX-curMapCenterX
+            #moveY = compMapCenterY-curMapCenterY
+            #item.moveContent(moveX, moveY)
+            #item.moveContent(0, 1)
                 
         except:
-                iface.messageBar().pushMessage("Sync Composer with Map","Something went wrong", QgsMessageBar.WARNING, 3)
-                
+                iface.messageBar().pushMessage("Sync Composer with Map","I didn't find any maps in Composer", QgsMessageBar.WARNING, 3)
+                #print "No Composer Maps!!!"
