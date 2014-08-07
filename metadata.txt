@@ -12,8 +12,8 @@
 name=Sync Composer With Map
 qgisMinimumVersion=2.0
 description=Sync the map canvas extents with composer map
-about=This plugin will install a new button on the Plugin toolbar.  When you click the button, the plugin will grab the current map canvas extents and scale and will synchronize those values with the first map found in composer. 
-version=0.2.0
+about=This plugin, when activated, will get the extents and scale of the current map canvas and synchronize those values with a map in the Composer.  If you have multiple maps in Composer and would like to schronize a specific map, select the map in composer and activate plugin.  The plugin is similar to the "Set to map canvas extent" button found in Item Properties in Composer but is easier to find for non-GIS proffessionals.
+version=0.3.0
 author=Ed B
 email=boesiii@yahoo.com
 
@@ -22,7 +22,7 @@ email=boesiii@yahoo.com
 # Optional items:
 
 # Uncomment the following line and add your changelog entries:
-changelog= Figured out how to use moveContent properly.
+changelog= Cleaned up code, added tests for active composers and multiple maps in composer, added code for dealing with selected maps in composer.
 
 # tags are comma separated with spaces allowed
 tags=composer
