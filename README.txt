@@ -1,1 +1,1 @@
-This plugin will install a new button on the Plugin toolbar.  When you click the button, the plugin will grab the current map canvas extents and scale and will synchronize those values with the first map found in composer. 
+This plugin will install a new button on the Plugin toolbar.  When you click the button, the plugin will grab the current map canvas extents and scale and will synchronize those values with the first map found  -in composer. 
