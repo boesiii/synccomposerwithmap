@@ -15,17 +15,16 @@
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version .                                  *
+ *   (at your option) any later version.                                   *
  *                                                                         *
  ***************************************************************************/
  
  
 """
 # To do:
-# get rid of not needed code from plugin builder
 # Test for active composers
-# Test for map in composers
-# Research moveContent
+# Below helped me to figure out where to start
+# http://gis.stackexchange.com/questions/2515/altering-composer-label-items-in-qgis-with-python
 
 # Import the PyQt and QGIS libraries
 from PyQt4.QtCore import *
@@ -38,6 +37,7 @@ import resources_rc
 # Import the code for the dialog
 # from synccomposerwithmapdialog import syncComposerWithMapDialog
 import os.path
+import sys
 
 
 class syncComposerWithMap:
@@ -80,107 +80,74 @@ class syncComposerWithMap:
 
     # run method that performs all the real work
     def run(self):
-        #The link below helped me get started
-        #http://gis.stackexchange.com/questions/2515/altering-composer-label-items-in-qgis-with-python
-        
-        #TO DO: ADD SIGNAL AND SLOT
+        #TO DO: Add something for signal and slot
         
         #get canvas
         canvas = self.iface.mapCanvas()
         
-        #get map canvas scale
-        curMapScale = canvas.scale()
-        
-        #get map canvas current extent
-        curMapExtent = canvas.extent()
-        
-        #get map canvas center
-        curMapCenter = canvas.extent().center()
-        
-        #get map canvas center x coordinate
-        curMapCenterX = canvas.extent().center().x()
-        #print "Canvas X = " + str(curMapCenterX)
-        
-        #get map canvas center y coordinate
-        curMapCenterY = canvas.extent().center().y()
-        #print "Canvas Y = " + str(curMapCenterY)
-        
-        #get map canvas width
-        curMapWidth = canvas.extent().width()
-        
-        #get map canvas height
-        curMapHeight = canvas.extent().height()
-        
-        #get map canvas xmin
-        curMapXmin = canvas.extent().xMinimum()
-        
-        #get map canvas xmax
-        curMapXmax = canvas.extent().xMaximum()
-        
-        #TO DO: ADD CHECK FOR COMPOSERS
         #get active composers in a list
         composerList = self.iface.activeComposers()
         
-        #get first list object
-        composerView = composerList[0]
+        #check for Active Composers
+        if len(composerList) > 0:
         
-        #get the composition object
-        composition = composerView.composition()
-        
-        #old version to get list of maps didn't work in win 32 bit
-        #for item in composition.composerMapItems():
-        
-        #TO DO: CHECK FOR MORE THAN ONE MAP
-        #get first map object in composer
-        map = composition.getComposerMapById(0)
+            #get first object in list
+            composerView = composerList[0]
+            
+            #get the composition object
+            composition = composerView.composition()
+            
+            #http://gis.stackexchange.com/questions/109335/how-to-test-for-multiple-map-items-in-composer-using-python
+            #get all maps in composer
+            maps = [item for item in composition.items() if item.type() == QgsComposerItem.ComposerMap and item.scene()]
+            if len(maps) > 0:
+            
+                #get all selected map in composer
+                selMaps = [item for item in composition.selectedItems() if item.type() == QgsComposerItem.ComposerMap and item.scene()]
                 
-        try:
-            #get composer map width
-            compMapWidth = map.currentMapExtent().width()
+                #check for selected maps
+                if len(selMaps) > 0:
                 
-            #get composer map height
-            compMapHeight = map.currentMapExtent().height()
-            
-            compMapCenterX = map.extent().center().x()
-            #print "Composer X = " + str(compMapCenterX)
-            
-            compMapCenterY = map.extent().center().y()
-            #print "Composer Y= " + str(compMapCenterY)
-            
-            #old version to calc composer extents
-            #calculate new Y min
-            #newCompExtentYmin = curMapCenterY - ((curMapWidth / 2) * (compMapHeight / compMapWidth))
-            #calculate new y max
-            #newCompExtentYmax = curMapCenterY + ((curMapWidth / 2) * (compMapHeight / compMapWidth))
-            #new composer extents
-            #newCompExtent = QgsRectangle(curMapXmin, newCompExtentYmin, curMapXmax, newCompExtentYmax)
-            #set composed new extents
-            #map.setNewExtent(newCompExtent)
-            #set composer scale to equal map scale
-            #map.setNewScale(curMapScale)
-            #end of old version stuff
-            
-            #calculate x move distance
-            moveX = compMapCenterX-curMapCenterX
-            #print "Move X = " + str(moveX)
-            
-            #calculate y move distance
-            moveY = compMapCenterY-curMapCenterY
-            #print "Move Y = " + str(moveY)
-            
-            #Get units conversion
-            unitCon = map.mapUnitsToMM()
-            
-            #Move composer map to equal canvas map
-            map.moveContent(-moveX * unitCon, moveY * unitCon)
-            
-            #set new composer scale
-            map.setNewScale(curMapScale)
-            
-            #put a nice message on canvas
-            iface.messageBar().pushMessage("Sync Composer with Map","Map center and scale have been synced with ComposerMessage", QgsMessageBar.INFO, 2)
-
+                    #Set map to first selected map found
+                    map = selMaps[0]
+                    message = "Map Canvas extents and scale have been synchronized with Selected Map in Composer"
+                else:
+                    #If no maps are selected than set map to first found
+                    map = maps[0]
+                    message = "Map Canvas extents and scale have been synchronized with first map found in Composer"
+                #print str(map)
                 
-        except:
-                iface.messageBar().pushMessage("Sync Composer with Map","Something went wrong", QgsMessageBar.WARNING, 3)
+                #calculate x move distance
+                moveX = map.extent().center().x()-canvas.extent().center().x()
+                #print "Move X = " + str(moveX)
+                
+                #calculate y move distance
+                moveY = map.extent().center().y()-canvas.extent().center().y()
+                #print "Move Y = " + str(moveY)
+                
+                #Get units conversion
+                unitCon = map.mapUnitsToMM()
+                #print "Conversion: " + str (unitCon)
+                
+                try:
+                    #Move composer map to equal canvas map
+                    map.moveContent(-moveX * unitCon, moveY * unitCon)
+                    #map.moveContent(-100 * unitCon, 100 * unitCon)
+                    
+                    #set new composer scale
+                    map.setNewScale(canvas.scale())
+                    
+                    #put a nice message on canvas
+                    iface.messageBar().pushMessage("Sync Composer with Map",message , QgsMessageBar.INFO, 2)
+                    
+                except:
+                    iface.messageBar().pushMessage("Sync Composer with Map","Something went wrong", QgsMessageBar.WARNING, 3)
+            
+            #No Composers
+            else:
+                iface.messageBar().pushMessage("Sync Composer with Map","There are no maps in Composer", QgsMessageBar.WARNING, 3)            
+         
+        #No Active Composer Found         
+        else:
+            iface.messageBar().pushMessage("Sync Composer with Map","There are no active composers", QgsMessageBar.WARNING, 3)
                 
